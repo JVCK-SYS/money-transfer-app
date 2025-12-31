@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JS Bank App</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 350px; margin: 10px; }
+        input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-green { background: #28a745; color: white; }
+        .btn-blue { background: #007bff; color: white; }
+        #msg { margin-top: 20px; font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+
+    <h1>Node.js Bank Connection</h1>
+
+    <div class="card">
+        <h3>Auth</h3>
+        <input id="user" placeholder="Username">
+        <input id="pass" type="password" placeholder="Password">
+        <button class="btn-green" onclick="auth('register')">Register</button>
+        <button class="btn-blue" style="margin-top:5px" onclick="auth('login')">Login</button>
+    </div>
+
+    <div class="card">
+        <h3>Dashboard</h3>
+        <button onclick="checkBalance()">Check My Balance</button>
+        <hr>
+        <input id="amt" type="number" placeholder="Amount ($)">
+        <input id="toId" type="number" placeholder="Recipient ID">
+        <button class="btn-blue" onclick="doTransfer()">Send Money</button>
+    </div>
+
+    <p id="msg">Waiting for action...</p>
+
+    <script>
+        let userToken = "";
+
+        async function auth(type) {
+            const res = await fetch(`http://localhost:3000/${type}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user.value, password: pass.value })
+            });
+            const data = await res.json();
+            if (data.token) {
+                userToken = data.token;
+                msg.innerText = "Logged in successfully!";
+            } else {
+                msg.innerText = data.message || data.error;
+            }
+        }
+
+        async function checkBalance() {
+            const res = await fetch('http://localhost:3000/balance', {
+                headers: { 'Authorization': `Bearer ${userToken}` }
+            });
+            const data = await res.json();
+            msg.innerText = data.balance ? `Your balance is: $${data.balance}` : data.error;
+        }
+
+        async function doTransfer() {
+            const res = await fetch('http://localhost:3000/transfer', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({ amount: Number(amt.value), recipientId: toId.value })
+            });
+            const data = await res.json();
+            msg.innerText = data.message || data.error;
+        }
+    </script>
+</body>
+</html>
