@@ -12,7 +12,7 @@ RUN npm install
 COPY . .
 
 # 5. Open a 'window' (port) so we can talk to the app
-EXPOSE 3000
+EXPOSE 4000
 
 # 6. The command to start the bank
 CMD ["node", "app.js"]
